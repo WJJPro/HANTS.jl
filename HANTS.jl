@@ -11,7 +11,7 @@ https://mabouali.wordpress.com/projects/harmonic-analysis-of-time-series-hants/
 module HANTS
 using LinearAlgebra
 
-export hants, reconhants
+export hants, reconstructhants, applyhants, reconstructimage
 
 """
     hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
@@ -146,11 +146,11 @@ function hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
 end
 
 """
-    reconhants(amp, φ, nb)
+    reconstructhants(amp, φ, nb)
 
 Comput reconstructed time series.
 """
-function reconhants(amp, φ, nb)
+function reconstructhants(amp, φ, nb)
     nf = maximum(size(amp))
 
     y = zeros(nb)
@@ -189,7 +189,7 @@ function applyhants(y, nb, nf, fet, dod, HiLo, low, high, delta)
     y_out, amp, φ
 end
 
-    function ReconstructImage(amp,φ,nb)
+    function reconstructimage(amp,φ,nb)
     if length(size(amp)) ≠ 3
         error("amp and φ must be three dimensional [nf, lat, lon]")
     end
@@ -202,7 +202,7 @@ end
         for Line = 1:ny
             amp_Pixel = amp[:, Line, Sample]
             φ_Pixel = φ[:, Line, Sample]
-            Data[:, Line, Sample] = reconhants(amp_Pixel, φ_Pixel, nb)
+            Data[:, Line, Sample] = reconstructhants(amp_Pixel, φ_Pixel, nb)
         end
     end
     Data
