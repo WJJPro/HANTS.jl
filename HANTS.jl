@@ -189,7 +189,7 @@ function applyhants(y, nb, nf, fet, dod, HiLo, low, high, delta)
     y_out, amp, φ
 end
 
-    function reconstructimage(amp,φ,nb)
+function reconstructimage(amp,φ,nb)
     if length(size(amp)) ≠ 3
         error("amp and φ must be three dimensional [nf, lat, lon]")
     end
