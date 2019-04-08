@@ -84,8 +84,8 @@ function hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
     dg = 180.0 / π
     mat[1, :] .= 1.0
 
-    ang = 2π * (0:nb-1) / nb
-    cs = cos.(ang); sn = sin.(ang)
+    ang = 2 * (0:nb-1) / nb
+    cs = cospi.(ang); sn = sinpi.(ang)
     for i = 1:nf
         for j = 1:ni
             index = 1 + mod.(i * (ts[j] - 1), nb)
@@ -154,11 +154,11 @@ function reconstructhants(amp, φ, nb)
     nf = maximum(size(amp))
 
     y = zeros(nb)
-    a_Coef = @. amp * cos(φ * π / 180)
-    b_Coef = @. amp * sin(φ * π / 180)
+    a_Coef = @. amp * cospi(φ / 180)
+    b_Coef = @. amp * sinpi(φ / 180)
     for i = 1:nf
-        tt = @. (i - 1) * 2 * π * (0:nb-1) / nb
-        y .+= a_Coef[i] .* cos.(tt) .+ b_Coef[i] .* sin.(tt)
+        tt = @. (i - 1) * 2 * (0:nb-1) / nb
+        y .+= a_Coef[i] .* cospi.(tt) .+ b_Coef[i] .* sinpi.(tt)
     end
     y
 end
