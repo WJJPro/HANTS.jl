@@ -14,9 +14,6 @@ June 1998
 Converted to MATLAB:
 Mohammad Abouali (2011) (BSD 2-Clause)
 
-Converted from MATLAB to Julia:
-Shen Ruoque (2019)
-
 ## Modified:
 
 Apply suppression of high amplitudes for near-singular case by
@@ -27,6 +24,9 @@ Output of reconstructed time series in array yr.
 
 Change call and input arguments to accommodate a base period length (nb).
 All frequencies from 1 (base period) until nf are included.
+
+Converted from MATLAB to Julia:
+Shen Ruoque (2019)
 
 """
 module HANTS
