@@ -11,7 +11,7 @@ https://mabouali.wordpress.com/projects/harmonic-analysis-of-time-series-hants/
 module HANTS
 using LinearAlgebra
 
-export hants, reconstructhants, applyhants, reconstructimage
+export hants, reconstruct, apply, reconstructimage
 
 """
     hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
@@ -65,7 +65,9 @@ All frequencies from 1 (base period) until nf are included.
 - `φ`     : returned array of phases, first element is zero
 - `yr`    : array holding reconstructed time series
 """
-function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, δ) where {T}
+function hants(
+    ni, nb, nf, y::Vector{T}, ts, HiLo, low, high, fet, dod, δ
+) where {T<:AbstractFloat}
 
     nr = min(2nf+1, ni)
     mat = zeros(T, nr, ni)
@@ -145,6 +147,10 @@ function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, �
     amp, φ, yr
 end
 
+hants(ni, nb, nf, y::Vector{<:Integer}, ts, HiLo, low, high, fet, dod, δ) = hants(
+    ni, nb, nf, convert(Vector{Float64}, y), ts, HiLo, low, high, fet, dod, δ
+)
+
 """
     reconstruct(amp, φ, nb)
 
@@ -163,7 +169,9 @@ function reconstruct(amp, φ, nb)
     y
 end
 
-function apply(y::AbstractArray{T,N}, nb, nf, fet, dod, HiLo, low, high, δ) where {T,N}
+function apply(
+    y::Array{T,N}, nb, nf, fet, dod, HiLo, low, high, δ
+) where {T<:AbstractFloat,N}
     if N ≠ 3 error("Input data must be three dimensional [time, lat, lon]") end
     ni, ny, nx = size(y)
 
@@ -186,7 +194,11 @@ function apply(y::AbstractArray{T,N}, nb, nf, fet, dod, HiLo, low, high, δ) whe
     y_out, amp, φ
 end
 
-function reconstructimage(amp::AbstractArray{T,N}, φ, nb) where {T,N}
+apply(y::Array{<:Integer}, nb, nf, fet, dod, HiLo, low, high, δ) = apply(
+    convert(Array{Float64}, y), nb, nf, fet, dod, HiLo, low, high, δ
+)
+
+function reconstructimage(amp::Array{<:AbstractFloat,N}, φ, nb) where N
     if N ≠ 3 error("amp and φ must be three dimensional [nf, lat, lon]") end
     ni, ny, nx = size(amp)
 
@@ -201,6 +213,10 @@ function reconstructimage(amp::AbstractArray{T,N}, φ, nb) where {T,N}
     end
     data
 end
+
+reconstructimage(amp::Array{<:Integer}, φ, nb) = reconstructimage(
+    convert(Array{Float64}, amp), φ, nb
+)
 
 end # module HANTS
 
