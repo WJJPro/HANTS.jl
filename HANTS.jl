@@ -42,7 +42,6 @@ All frequencies from 1 (base period) until nf are included.
 # Parameters
 
 ## Inputs:
-- `ni`   : nr. of images (total number of actual samples of the time series)
 - `nb`   : length of the base period, measured in virtual samples
            (days, dekads, months, etc.)
 - `nf`   : number of frequencies to be considered above the zero frequency
@@ -66,18 +65,19 @@ All frequencies from 1 (base period) until nf are included.
 - `yr`    : array holding reconstructed time series
 """
 function hants(
-    ni, nb, nf, y::Vector{T}, ts, HiLo, low, high, fet, dod, δ
+    nb, nf, y::AbstractArray{T,1}, ts, HiLo, low, high, fet, dod, δ
 ) where {T<:AbstractFloat}
 
+    ni = length(y)
     nr = min(2nf+1, ni)
     mat = zeros(T, nr, ni)
     amp = zeros(T, nf+1)
     φ = zeros(T, nf+1)
     yr  = zeros(T, ni)
 
-    if HiLo == "Hi"
+    if HiLo == "Hi" || HiLo == "High"
         sHiLo = -1
-    elseif HiLo == "Lo"
+    elseif HiLo == "Lo" || HiLo == "Low"
         sHiLo = 1
     else
         sHiLo = 0
@@ -90,7 +90,7 @@ function hants(
     cs = cospi.(ang); sn = sinpi.(ang)
     for i = 1:nf
         for j = 1:ni
-            index = 1 + mod.(i * (ts[j] - 1), nb)
+            index = 1 + mod(i * (ts[j] - 1), nb)
             mat[2i  , j] = cs[index]
             mat[2i+1, j] = sn[index]
         end
@@ -121,11 +121,11 @@ function hants(
         rankvec = sortperm(err)
 
         maxerr = diffvec[Int(rankvec[ni])]
-        ready = (maxerr ≤ fet) || (nout == noutmax)
+        ready = maxerr ≤ fet || nout == noutmax
 
         if !ready
             i = ni; j = rankvec[i]
-            while (p[j] * diffvec[j] > 0.5maxerr) && (nout < noutmax)
+            while p[j] * diffvec[j] > 0.5maxerr && nout < noutmax
                 p[j] = 0; nout += 1; i -= 1; j = rank(i)
             end
         end
@@ -147,8 +147,8 @@ function hants(
     amp, φ, yr
 end
 
-hants(ni, nb, nf, y::Vector{<:Integer}, ts, HiLo, low, high, fet, dod, δ) = hants(
-    ni, nb, nf, convert(Vector{Float64}, y), ts, HiLo, low, high, fet, dod, δ
+hants(nb, nf, y::AbstractArray{<:Integer,1}, ts, HiLo, low, high, fet, dod, δ) = hants(
+    nb, nf, convert(Vector{Float64}, y), ts, HiLo, low, high, fet, dod, δ
 )
 
 """
@@ -170,7 +170,7 @@ function reconstruct(amp, φ, nb)
 end
 
 function apply(
-    y::Array{T,N}, nb, nf, fet, dod, HiLo, low, high, δ
+    y::AbstractArray{T,N}, nb, nf, fet, dod, HiLo, low, high, δ
 ) where {T<:AbstractFloat,N}
     if N ≠ 3 error("Input data must be three dimensional [time, lat, lon]") end
     ni, ny, nx = size(y)
@@ -186,7 +186,7 @@ function apply(
             if sum(isnan.(data)) ≠ ni
                 data[isnan.(data)] = low - 1.0
                 amp[:, line, sample], φ[:, line, sample], y_out[:, line, sample] = hants(
-                    ni, nb, nf, data, ts, HiLo, low, high, fet, dod, δ
+                    nb, nf, data, ts, HiLo, low, high, fet, dod, δ
                 )
             end
         end
@@ -194,11 +194,11 @@ function apply(
     y_out, amp, φ
 end
 
-apply(y::Array{<:Integer}, nb, nf, fet, dod, HiLo, low, high, δ) = apply(
+apply(y::AbstractArray{<:Integer}, nb, nf, fet, dod, HiLo, low, high, δ) = apply(
     convert(Array{Float64}, y), nb, nf, fet, dod, HiLo, low, high, δ
 )
 
-function reconstructimage(amp::Array{<:AbstractFloat,N}, φ, nb) where N
+function reconstructimage(amp::AbstractArray{<:AbstractFloat,N}, φ, nb) where N
     if N ≠ 3 error("amp and φ must be three dimensional [nf, lat, lon]") end
     ni, ny, nx = size(amp)
 
@@ -214,7 +214,7 @@ function reconstructimage(amp::Array{<:AbstractFloat,N}, φ, nb) where N
     data
 end
 
-reconstructimage(amp::Array{<:Integer}, φ, nb) = reconstructimage(
+reconstructimage(amp::AbstractArray{<:Integer}, φ, nb) = reconstructimage(
     convert(Array{Float64}, amp), φ, nb
 )
 
