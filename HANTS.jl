@@ -7,17 +7,6 @@ Converted from MATLAB
 
 https://mabouali.wordpress.com/projects/harmonic-analysis-of-time-series-hants/
 
-"""
-module HANTS
-using LinearAlgebra
-
-export hants, reconstruct, apply, reconstructimage
-
-"""
-    hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
-
-# HANTS processing
-
 Wout Verhoef
 NLR, Remote Sensing Dept.
 June 1998
@@ -34,29 +23,38 @@ Apply suppression of high amplitudes for near-singular case by
 adding a number δ to the diagonal elements of matrix A,
 except element (1,1), because the average should not be affected.
 
-Output of reconstructed time series in array yr June 2005.
+Output of reconstructed time series in array yr.
 
 Change call and input arguments to accommodate a base period length (nb).
 All frequencies from 1 (base period) until nf are included.
 
-# Parameters
+"""
+module HANTS
+using LinearAlgebra
+
+export hants, reconstruct, apply, reconstructimage
+
+"""
+    hants(y, nb, nf, validrange, fet, dod, δ; ts, outlier)
+
+# HANTS processing
 
 ## Inputs:
-- `nb`   : length of the base period, measured in virtual samples
-           (days, dekads, months, etc.)
-- `nf`   : number of frequencies to be considered above the zero frequency
-- `y`    : array of input sample values (e.g. NDVI values)
-- `ts`   : array of size ni of time sample indicators (indicates virtual sample number
-           relative to the base period); numbers in array ts maybe greater than nb.
-           If no aux file is used (no time samples),
-           we assume ts(i) = i, where i = 1, ..., ni
-- `HiLo` : 2-character string indicating rejection of high or low outliers
-- `low`  : valid range minimum
-- `high` : valid range maximum (values outside the valid range are rejeced right away)
-- `fet`  : fit error tolerance (points deviating more than fet from curve fit are rejected)
-- `dod`  : degree of overdeterminedness (iteration stops if number of points reaches the
-           minimum required for curve fitting, plus dod). This is a safety measure
-- `δ`    : small positive number (e.g. 0.1) to suppress high amplitudes
+- `y`  : array of input sample values (e.g. NDVI values)
+- `nb` : length of the base period, measured in virtual samples
+         (days, dekads, months, etc.)
+- `nf` : number of frequencies to be considered above the zero frequency
+- `validrange` : tuple of valid range minimum and maximum
+                 (values outside the valid range are rejeced right away)
+- `fet` : fit error tolerance (points deviating more than fet from curve fit are rejected)
+- `dod` : degree of overdeterminedness (iteration stops if number of points reaches the
+          minimum required for curve fitting, plus dod). This is a safety measure
+- `δ`   : small positive number (e.g. 0.1) to suppress high amplitudes
+- `ts`  : array same size as `y` of time sample indicators (indicates virtual sample
+          number relative to the base period); numbers in array `ts` maybe greater
+          than nb. Set to 1:length(ts) by default
+- `outlier` : 2-character string indicating rejection of high or low outliers.
+              Set to `nothing` by default
 
 ## Outputs:
 
@@ -65,7 +63,7 @@ All frequencies from 1 (base period) until nf are included.
 - `yr`    : array holding reconstructed time series
 """
 function hants(
-    nb, nf, y::AbstractArray{T,1}, ts, HiLo, low, high, fet, dod, δ
+    y::AbstractArray{T,1}, nb, nf, validrange, fet, dod, δ; ts=nothing, outlier=nothing
 ) where {T<:AbstractFloat}
 
     ni = length(y)
@@ -75,13 +73,17 @@ function hants(
     φ = zeros(T, nf+1)
     yr = zeros(T, ni)
 
-    if HiLo == "Hi" || HiLo == "High"
-        sHiLo = -1
-    elseif HiLo == "Lo" || HiLo == "Low"
-        sHiLo = 1
+    if outlier == "Hi" || outlier == "High"
+        soutlier = -1
+    elseif outlier == "Lo" || outlier == "Low"
+        soutlier = 1
     else
-        sHiLo = 0
+        soutlier = 0
     end
+
+    if ts == nothing ts = 1:ni end
+    low, high = validrange
+
     noutmax = ni - nr - dod
     dg = 180.0 / π
     mat[1, :] .= 1.0
@@ -116,7 +118,7 @@ function hants(
         zr = A \ za
 
         yr = mat' * zr
-        diffvec = sHiLo * (yr - y_in)
+        diffvec = soutlier * (yr - y_in)
         err = p .* diffvec
 
         rankvec = sortperm(err)
@@ -148,8 +150,11 @@ function hants(
     amp, φ, yr
 end
 
-hants(nb, nf, y::AbstractArray{<:Integer,1}, ts, HiLo, low, high, fet, dod, δ) = hants(
-    nb, nf, convert(Vector{Float64}, y), ts, HiLo, low, high, fet, dod, δ
+hants(
+    y::AbstractArray{<:Integer,1}, nb, nf, validrange, fet, dod, δ;
+    ts=nothing, outlier=nothing
+) = hants(
+    convert(Vector{Float64}, y), nb, nf, validrange, fet, dod, δ; ts=ts, outlier=outlier
 )
 
 """
@@ -170,8 +175,36 @@ function reconstruct(amp, φ, nb)
     y
 end
 
+"""
+    apply(y, nb, nf, validrange, fet, dod, δ; ts, outlier)
+
+Apply HANTS to a raster data.
+
+## Inputs:
+- `y`    : input data. Must be three dimensional [time, lat, lon].
+- `nb` : length of the base period, measured in virtual samples
+         (days, dekads, months, etc.)
+- `nf` : number of frequencies to be considered above the zero frequency
+- `validrange` : tuple of valid range minimum and maximum
+                 (values outside the valid range are rejeced right away)
+- `fet` : fit error tolerance (points deviating more than fet from curve fit are rejected)
+- `dod` : degree of overdeterminedness (iteration stops if number of points reaches the
+          minimum required for curve fitting, plus dod). This is a safety measure
+- `δ`   : small positive number (e.g. 0.1) to suppress high amplitudes
+- `ts`  : array same size as `y` of time sample indicators (indicates virtual sample
+          number relative to the base period); numbers in array `ts` maybe greater
+          than nb. Set to 1:length(ts) by default
+- `outlier` : 2-character string indicating rejection of high or low outliers.
+              Set to `nothing` by default
+
+## Outputs:
+
+- `amp`   : returned array of amplitudes, first element is the average of the curve
+- `φ`     : returned array of phases, first element is zero
+- `yr`    : array holding reconstructed time series
+"""
 function apply(
-    y::AbstractArray{T,N}, nb, nf, fet, dod, HiLo, low, high, δ
+    y::AbstractArray{T,N}, nb, nf, validrange, fet, dod, δ; ts=nothing, outlier=nothing
 ) where {T<:AbstractFloat,N}
     if N ≠ 3 error("Input data must be three dimensional [time, lat, lon]") end
     ni, ny, nx = size(y)
@@ -179,26 +212,33 @@ function apply(
     y_out = zeros(T, ni, ny, nx)
     amp = zeros(T, nf+1, ny, nx)
     φ = zeros(T, nf+1, ny, nx)
-    ts = 1:ni
 
-    for sample = 1:nx
-        for line = 1:ny
-            data = y[:, line, sample]
+    for lon = 1:nx
+        for lat = 1:ny
+            data = y[:, lat, lon]
             if sum(isnan.(data)) ≠ ni
-                data[isnan.(data)] = low - 1.0
-                amp[:, line, sample], φ[:, line, sample], y_out[:, line, sample] = hants(
-                    nb, nf, data, ts, HiLo, low, high, fet, dod, δ
+                data[isnan.(data)] = validrange[1] - 1.0
+                amp[:, lat, lon], φ[:, lat, lon], y_out[:, lat, lon] = hants(
+                    data, nb, nf, validrange, fet, dod, δ; ts=ts, outlier=outlier
                 )
             end
         end
     end
-    y_out, amp, φ
+    amp, φ, y_out
 end
 
-apply(y::AbstractArray{<:Integer}, nb, nf, fet, dod, HiLo, low, high, δ) = apply(
-    convert(Array{Float64}, y), nb, nf, fet, dod, HiLo, low, high, δ
+apply(
+    y::AbstractArray{<:Integer}, nb, nf, validrange, fet, dod, δ;
+    ts=nothing, outlier=nothing
+) = apply(
+    convert(Array{Float64}, y), nb, nf, validrange, fet, dod, δ; ts=ts, outlier=outlier
 )
 
+"""
+    reconstructimage(amp, φ, nb)
+
+Comput reconstructed time series for a raster data.
+"""
 function reconstructimage(amp::AbstractArray{<:AbstractFloat,N}, φ, nb) where N
     if N ≠ 3 error("amp and φ must be three dimensional [nf, lat, lon]") end
     ni, ny, nx = size(amp)

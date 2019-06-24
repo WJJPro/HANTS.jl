@@ -16,19 +16,18 @@ y = [
 nb = 365
 nf = 3
 ts = 1:16:365
-low = -1
-high = 1
+validrange = (-1, 1)
 fet = 0.02
 dod = 1
 δ = 0.1
 
-amp, φ, yr = hants(nb, nf, y, ts, nothing, low, high, fet, dod, δ)
+amp, φ, yr = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier=nothing)
 yre = reconstruct(amp, φ, nb)
 
-amp_Hi, φ_Hi, yr_Hi = hants(nb, nf, y, ts, "Hi", low, high, fet, dod, δ)
+amp_Hi, φ_Hi, yr_Hi = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier="Hi")
 yre_Hi = reconstruct(amp_Hi, φ_Hi, nb)
 
-amp_Lo, φ_Lo, yr_Lo = hants(nb, nf, y, ts, "Lo", low, high, fet, dod, δ)
+amp_Lo, φ_Lo, yr_Lo = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier="Lo")
 yre_Lo = reconstruct(amp_Lo, φ_Lo, nb)
 
 fig1 = plot(ts, y, lc=:black, label="Original Data", shape=:circle, mc=:black)
