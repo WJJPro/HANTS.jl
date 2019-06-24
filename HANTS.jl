@@ -26,7 +26,7 @@ Change call and input arguments to accommodate a base period length (nb).
 All frequencies from 1 (base period) until nf are included.
 
 Converted from MATLAB to Julia:
-Shen Ruoque (2019)
+Ruoque Shen (2019) (MIT License)
 
 """
 module HANTS
