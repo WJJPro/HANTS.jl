@@ -101,7 +101,7 @@ function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, �
     if nout > noutmax return end
 
     ready = false; nloop = 0; nloopmax = ni
-    za = zeros(7, 32); zr = zeros(7, 32)
+    local za, zr
 
     while (!ready) && (nloop < nloopmax)
         nloop += 1
@@ -113,17 +113,17 @@ function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, �
         zr = A \ za
 
         yr = mat' * zr
-        diffVec = sHiLo * (yr - y)
-        err = p .* diffVec
+        diffvec = sHiLo * (yr - y)
+        err = p .* diffvec
 
-        rankVec = sortperm(err)
+        rankvec = sortperm(err)
 
-        maxerr = diffVec[Int(rankVec[ni])]
+        maxerr = diffvec[Int(rankvec[ni])]
         ready = (maxerr ≤ fet) || (nout == noutmax)
 
         if !ready
-            i = ni; j = rankVec[i]
-            while (p[j] * diffVec[j] > maxerr * 0.5) && (nout < noutmax)
+            i = ni; j = rankvec[i]
+            while (p[j] * diffvec[j] > 0.5maxerr) && (nout < noutmax)
                 p[j] = 0; nout += 1; i -= 1; j = rank(i)
             end
         end
@@ -146,28 +146,25 @@ function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, �
 end
 
 """
-    reconstructhants(amp, φ, nb)
+    reconstruct(amp, φ, nb)
 
 Comput reconstructed time series.
 """
-function reconstructhants(amp, φ, nb)
+function reconstruct(amp, φ, nb)
     nf = maximum(size(amp))
 
     y = zeros(nb)
-    a_Coef = @. amp * cospi(φ / 180)
-    b_Coef = @. amp * sinpi(φ / 180)
+    a_coef = @. amp * cospi(φ / 180)
+    b_coef = @. amp * sinpi(φ / 180)
     for i = 1:nf
         tt = @. (i - 1) * 2 * (0:nb-1) / nb
-        y .+= a_Coef[i] .* cospi.(tt) .+ b_Coef[i] .* sinpi.(tt)
+        y .+= a_coef[i] .* cospi.(tt) .+ b_coef[i] .* sinpi.(tt)
     end
     y
 end
 
-function applyhants(y::AbstractArray{T, N}, nb, nf, fet, dod, HiLo, low, high, delta) where {T, N}
-    if N ≠ 3
-        error("Input data must be three dimensional [time, lat, lon]")
-    end
-
+function apply(y::AbstractArray{T,N}, nb, nf, fet, dod, HiLo, low, high, δ) where {T,N}
+    if N ≠ 3 error("Input data must be three dimensional [time, lat, lon]") end
     ni, ny, nx = size(y)
 
     y_out = zeros(T, ni, ny, nx)
@@ -175,13 +172,13 @@ function applyhants(y::AbstractArray{T, N}, nb, nf, fet, dod, HiLo, low, high, d
     φ = zeros(T, nf+1, ny, nx)
     ts = 1:ni
 
-    for Sample = 1:nx
-        for Line = 1:ny
-            data = y[:, Line, Sample]
+    for sample = 1:nx
+        for line = 1:ny
+            data = y[:, line, sample]
             if sum(isnan.(data)) ≠ ni
                 data[isnan.(data)] = low - 1.0
-                amp[:, Line, Sample], φ[:, Line, Sample], y_out[:, Line, Sample] = hants(
-                    ni, nb, nf, data, ts, HiLo, low, high, fet, dod, delta
+                amp[:, line, sample], φ[:, line, sample], y_out[:, line, sample] = hants(
+                    ni, nb, nf, data, ts, HiLo, low, high, fet, dod, δ
                 )
             end
         end
@@ -189,23 +186,20 @@ function applyhants(y::AbstractArray{T, N}, nb, nf, fet, dod, HiLo, low, high, d
     y_out, amp, φ
 end
 
-function reconstructimage(amp,φ,nb)
-    if length(size(amp)) ≠ 3
-        error("amp and φ must be three dimensional [nf, lat, lon]")
-    end
-
+function reconstructimage(amp::AbstractArray{T,N}, φ, nb) where {T,N}
+    if N ≠ 3 error("amp and φ must be three dimensional [nf, lat, lon]") end
     ni, ny, nx = size(amp)
-    
-    Data = zeros(nb,ny,nx)
 
-    for Sample = 1:nx
-        for Line = 1:ny
-            amp_Pixel = amp[:, Line, Sample]
-            φ_Pixel = φ[:, Line, Sample]
-            Data[:, Line, Sample] = reconstructhants(amp_Pixel, φ_Pixel, nb)
+    data = zeros(nb, ny, nx)
+
+    for sample = 1:nx
+        for line = 1:ny
+            amp_pixel = amp[:, line, sample]
+            φ_pixel = φ[:, line, sample]
+            data[:, line, sample] = reconstruct(amp_pixel, φ_pixel, nb)
         end
     end
-    Data
+    data
 end
 
 end # module HANTS
