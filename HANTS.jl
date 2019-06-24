@@ -103,7 +103,7 @@ function hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
     ready = false; nloop = 0; nloopmax = ni
     za = zeros(7, 32); zr = zeros(7, 32)
 
-    while (~ready) && (nloop < nloopmax)
+    while (!ready) && (nloop < nloopmax)
         nloop += 1
         za = mat * (p .* y)
 
