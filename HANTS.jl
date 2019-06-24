@@ -23,15 +23,15 @@ NLR, Remote Sensing Dept.
 June 1998
 
 Converted to MATLAB:
-Mohammad Abouali (2011)
+Mohammad Abouali (2011) (BSD 2-Clause)
 
 Converted from MATLAB to Julia:
-Shen Ruoque
+Shen Ruoque (2019)
 
-## Modified: 
+## Modified:
 
 Apply suppression of high amplitudes for near-singular case by
-adding a number δ to the diagonal elements of matrix A, 
+adding a number δ to the diagonal elements of matrix A,
 except element (1,1), because the average should not be affected.
 
 Output of reconstructed time series in array yr June 2005.
