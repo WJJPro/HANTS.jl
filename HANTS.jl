@@ -65,13 +65,13 @@ All frequencies from 1 (base period) until nf are included.
 - `φ`     : returned array of phases, first element is zero
 - `yr`    : array holding reconstructed time series
 """
-function hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
+function hants(ni, nb, nf, y::AbstractArray{T}, ts, HiLo, low, high, fet, dod, δ) where {T}
 
     nr = min(2nf+1, ni)
-    mat = zeros(Float32, nr, ni)
-    amp = zeros(Float32, nf+1)
-    φ = zeros(Float32, nf+1)
-    yr  = zeros(Float64, ni)
+    mat = zeros(T, nr, ni)
+    amp = zeros(T, nf+1)
+    φ = zeros(T, nf+1)
+    yr  = zeros(T, ni)
 
     if HiLo == "Hi"
         sHiLo = -1
@@ -163,16 +163,16 @@ function reconstructhants(amp, φ, nb)
     y
 end
 
-function applyhants(y, nb, nf, fet, dod, HiLo, low, high, delta)
-    if length(size(y)) ≠ 3
+function applyhants(y::AbstractArray{T, N}, nb, nf, fet, dod, HiLo, low, high, delta) where {T, N}
+    if N ≠ 3
         error("Input data must be three dimensional [time, lat, lon]")
     end
 
     ni, ny, nx = size(y)
 
-    y_out = zeros(Float32, ni, ny, nx)
-    amp = zeros(Float32, nf+1, ny, nx)
-    φ = zeros(Float32, nf+1, ny, nx)
+    y_out = zeros(T, ni, ny, nx)
+    amp = zeros(T, nf+1, ny, nx)
+    φ = zeros(T, nf+1, ny, nx)
     ts = 1:ni
 
     for Sample = 1:nx
