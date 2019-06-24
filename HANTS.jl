@@ -73,7 +73,7 @@ function hants(
     mat = zeros(T, nr, ni)
     amp = zeros(T, nf+1)
     φ = zeros(T, nf+1)
-    yr  = zeros(T, ni)
+    yr = zeros(T, ni)
 
     if HiLo == "Hi" || HiLo == "High"
         sHiLo = -1
@@ -96,8 +96,9 @@ function hants(
         end
     end
 
+    y_in = replace(y, NaN=>low-1)
     p = ones(ni)
-    p[(y .< low) .| (y .> high)] .= 0
+    p[(y_in .< low) .| (y_in .> high)] .= 0
     nout = sum(p .== 0)
 
     if nout > noutmax return end
@@ -107,7 +108,7 @@ function hants(
 
     while (!ready) && (nloop < nloopmax)
         nloop += 1
-        za = mat * (p .* y)
+        za = mat * (p .* y_in)
 
         A = mat * diagm(0=>p) * mat'
         A += diagm(0=>ones(nr)) * δ
@@ -115,7 +116,7 @@ function hants(
         zr = A \ za
 
         yr = mat' * zr
-        diffvec = sHiLo * (yr - y)
+        diffvec = sHiLo * (yr - y_in)
         err = p .* diffvec
 
         rankvec = sortperm(err)
