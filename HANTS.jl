@@ -121,7 +121,7 @@ function hants(ni, nb, nf, y, ts, HiLo, low, high, fet, dod, δ)
         maxerr = diffVec[Int(rankVec[ni])]
         ready = (maxerr ≤ fet) || (nout == noutmax)
 
-        if ~ready
+        if !ready
             i = ni; j = rankVec[i]
             while (p[j] * diffVec[j] > maxerr * 0.5) && (nout < noutmax)
                 p[j] = 0; nout += 1; i -= 1; j = rank(i)
