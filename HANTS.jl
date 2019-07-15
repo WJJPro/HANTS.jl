@@ -39,7 +39,8 @@ export hants, reconstruct
 
 # HANTS processing
 
-## Inputs:
+## Arguments:
+
 - `y`   : array of input sample values (e.g. NDVI values)
 - `fet` : fit error tolerance (points deviating more than fet from curve fit are rejected)
 - `dod` : degree of overdeterminedness (iteration stops if number of points reaches the
@@ -165,6 +166,17 @@ hants(
     reconstruct(amp, φ, nb)
 
 Comput reconstructed time series.
+
+## Arguments:
+
+- `amp` : array of amplitudes, first element is the average of the curve
+- `φ`   : array of phases, first element is zero
+- `nb`  : length of the base period, measured in virtual samples
+         (days, dekads, months, etc.)
+
+## Outputs:
+
+- `y`   : reconstructed array of sample values
 """
 function reconstruct end
 
