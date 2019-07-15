@@ -17,13 +17,19 @@ fet = 0.02
 dod = 1
 δ = 0.1
 
-amp, φ, yr = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier=nothing)
+amp, φ, yr = hants(
+    y, fet, dod, δ; nb=nb, nf=nf, validrange=validrange, ts=ts, outlier=nothing
+)
 yre = reconstruct(amp, φ, nb)
 
-amp_Hi, φ_Hi, yr_Hi = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier="Hi")
+amp_Hi, φ_Hi, yr_Hi = hants(
+    y, fet, dod, δ; nb=nb, nf=nf, validrange=validrange, ts=ts, outlier="Hi"
+)
 yre_Hi = reconstruct(amp_Hi, φ_Hi, nb)
 
-amp_Lo, φ_Lo, yr_Lo = hants(y, nb, nf, validrange, fet, dod, δ; ts=ts, outlier="Lo")
+amp_Lo, φ_Lo, yr_Lo = hants(
+    y, fet, dod, δ; nb=nb, nf=nf, validrange=validrange, ts=ts, outlier="Lo"
+)
 yre_Lo = reconstruct(amp_Lo, φ_Lo, nb)
 
 fig1 = plot(ts, y, lc=:black, label="Original Data", shape=:circle, mc=:black)
