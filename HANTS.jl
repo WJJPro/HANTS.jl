@@ -75,7 +75,7 @@ function hants(
     mat = zeros(T, nr, ni)
     amp = zeros(T, nf+1)
     φ = zeros(T, nf+1)
-    local za, zr, yr
+    local zr, yr
 
     if outlier == "Hi" || outlier == "High"
         soutlier = -1
