@@ -78,13 +78,9 @@ function hants(
     φ = zeros(T, nf+1)
     local zr, yr
 
-    if outlier == "Hi" || outlier == "High"
-        soutlier = -1
-    elseif outlier == "Lo" || outlier == "Low"
-        soutlier = 1
-    else
-        soutlier = 0
-    end
+    soutlier = 0
+    if outlier in ["Hi", "High"] soutlier = -1 end
+    if outlier in ["Lo", "Low" ] soutlier =  1 end
 
     low, high = validrange
 
