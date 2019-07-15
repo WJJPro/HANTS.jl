@@ -65,7 +65,7 @@ export hants, reconstruct
 function hants end
 
 function hants(
-    y::AbstractArray{T,1}, fet, dod, δ;
+    y::AbstractVector{T}, fet, dod, δ;
     nb=length(y), nf=3, validrange=extrema(y[.!isnan.(y)]),
     ts=1:length(y), outlier=nothing
 ) where {T<:AbstractFloat}
@@ -152,7 +152,7 @@ function hants(
 end
 
 hants(
-    y::AbstractArray{<:Integer,1}, fet, dod, δ;
+    y::AbstractVector{<:Integer}, fet, dod, δ;
     nb=length(y), nf=3, validrange=extrema(y[.!isnan.(y)]),
     ts=1:length(y), outlier=nothing
 ) = hants(
@@ -166,10 +166,11 @@ hants(
 
 Comput reconstructed time series.
 """
-function reconstruct(amp, φ, nb)
-    nf = maximum(size(amp))
+function reconstruct end
 
-    y = zeros(nb)
+function reconstruct(amp::AbstractVector{T}, φ, nb) where {T<:AbstractFloat}
+    nf = length(amp)
+    y = zeros(T, nb)
     a_coef = @. amp * cosd(φ)
     b_coef = @. amp * sind(φ)
     for i = 1:nf
@@ -178,5 +179,9 @@ function reconstruct(amp, φ, nb)
     end
     y
 end
+
+reconstruct(amp::AbstractVector{<:Integer}, φ, nb) = reconstruct(
+    convert(Vector{Float64}, amp), φ, nb
+)
 
 end # module HANTS
