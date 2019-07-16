@@ -78,9 +78,7 @@ function hants(
     φ = zeros(T, nf+1)
     local zr, yr
 
-    soutlier = 0
-    if outlier in ["Hi", "High"] soutlier = -1 end
-    if outlier in ["Lo", "Low" ] soutlier =  1 end
+    soutlier = outlier in ["Hi", "High"] ? -1 : outlier in ["Lo", "Low"] ? 1 : 0
 
     low, high = validrange
 
