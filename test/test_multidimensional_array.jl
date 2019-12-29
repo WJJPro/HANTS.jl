@@ -23,12 +23,12 @@ A, φ, yrec = hants(
 y_reconstruct = reconstruct(A, φ, nbase; dims=2)
 
 A_Hi, φ_Hi, yrec_Hi = hants(
-    y, fet, dod, δ; dims=2, nbase=nbase, nfreq=nfreq, validrange=validrange, tseries=tseries, outlier="Hi"
+    y, fet, dod, δ; dims=2, nbase=nbase, nfreq=nfreq, validrange=validrange, tseries=tseries, outlier=:Hi
 )
 y_reconstruct_Hi = reconstruct(A_Hi, φ_Hi, nbase; dims=2)
 
 A_Lo, φ_Lo, yrec_Lo = hants(
-    y, fet, dod, δ; dims=2, nbase=nbase, nfreq=nfreq, validrange=validrange, tseries=tseries, outlier="Lo"
+    y, fet, dod, δ; dims=2, nbase=nbase, nfreq=nfreq, validrange=validrange, tseries=tseries, outlier=:Lo
 )
 y_reconstruct_Lo = reconstruct(A_Lo, φ_Lo, nbase; dims=2)
 

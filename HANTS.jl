@@ -52,7 +52,7 @@ Apply the HANTS process on the series `y`.
 - `tseries` : array same size as `y` of time sample indicators (indicates virtual sample
               number relative to the base period); numbers in array `tseries` maybe greater
               than nbase. Set to 1:length(tseries) by default
-- `outlier` : a string `"Hi"` or `"Lo"` indicating rejection of high or low outliers.
+- `outlier` : a symbol `:Hi` or `:Lo` indicating rejection of high or low outliers.
               Set to `nothing` by default
 
 ## Outputs:
@@ -74,7 +74,7 @@ function hants(
     φ = Vector{T}(undef, nfreq+1)
     local zr, yrec
 
-    soutlier = outlier in ["Hi", "High"] ? -1 : outlier in ["Lo", "Lo"w] ? 1 : 0
+    soutlier = outlier in [:Hi, :High] ? -1 : outlier in [:Lo, :Low] ? 1 : 0
 
     low, high = validrange
 
