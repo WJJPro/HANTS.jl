@@ -26,7 +26,7 @@ Use long name instead of acronym.
 Add support to multidimensional arrays.
 """
 module HANTS
-using LinearAlgebra, Base.Cartesian
+using LinearAlgebra
 
 export hants, reconstruct
 
@@ -156,36 +156,40 @@ hants(
 Apply the HANTS process on the multidimensional array `arr`
 along the given dimension `dims`.
 """
-@generated function hants(
+function hants(
     arr::AbstractArray{T,N}, fet, dod, δ;
     dims::Integer, nbase=size(arr)[dims], nfreq=3, validrange=extrema(arr[.!isnan.(arr)]),
     tseries=1:size(arr)[dims], outlier=nothing
 ) where{T, N}
-    quote
-        if dims > N error("dims must less than N") end
+    if dims > N error("dims must less than N") end
 
-        arrsize = size(arr)
-        Asize = copy(collect(arrsize))
-        Asize[dims] = nfreq + 1
-        arr_rec = Array{Float64, N}(undef, arrsize...)
-        A = Array{Float64, N}(undef, Asize...)
-        φ = Array{Float64, N}(undef, Asize...)
+    arrsize = size(arr)
+    Asize = copy(collect(arrsize))
+    Asize[dims] = nfreq + 1
 
-        @nloops $N i arr (
-            d -> d == dims ? (j_d = (:); if i_d > 1 break end) : j_d = i_d
-        ) begin
-            y_ = @nref $N arr j
-            _A, _φ, _yr = hants(
-                y_, fet, dod, δ; nbase=nbase, nfreq=nfreq,
-                validrange=validrange, tseries=tseries, outlier=outlier
-            )
-            setindex!(A, _A, (@ntuple $N j)...)
-            setindex!(φ, _φ, (@ntuple $N j)...)
-            setindex!(arr_rec, _yr, (@ntuple $N j)...)
-        end
+    ny = arrsize[dims]
+    pdims = (dims, setdiff(1:ndims(arr), dims)...)
+    arrp = permutedims(arr, pdims)
+    arr_rec = permutedims(Array{Float64, N}(undef, arrsize...), pdims)
+    A = permutedims(Array{Float64, N}(undef, Asize...), pdims)
+    φ = permutedims(Array{Float64, N}(undef, Asize...), pdims)
+    arrv = vec(arrp)
+    arr_recv = vec(arr_rec)
+    Av = vec(A)
+    φv = vec(φ)
 
-        A, φ, arr_rec
+    for i = 1:prod(size(arrp)[2:end])
+        yid = (i-1)*ny+1:i*ny
+        Aid = (i-1)*(nfreq+1)+1:i*(nfreq+1)
+        Av[Aid], φv[Aid], arr_recv[yid] = hants(
+            arrv[yid], fet, dod, δ; nbase=nbase, nfreq=nfreq,
+            validrange=validrange, tseries=tseries, outlier=outlier
+        )
     end
+
+    permutedims(A, invperm(pdims)),
+    permutedims(φ, invperm(pdims)),
+    permutedims(arr_rec, invperm(pdims))
 end
 
 
@@ -225,27 +229,31 @@ end
 
 Comput reconstructed multidimensional array.
 """
-@generated function reconstruct(
+function reconstruct(
     A::AbstractArray{T,N}, φ, nbase::Integer; dims::Integer
 ) where{T<:AbstractFloat, N}
-    quote
-        if dims > N error("dims must less than N") end
+    if dims > N error("dims must less than N") end
 
-        ysize = collect(size(A))
-        ysize[dims] = nbase
-        y = Array{T}(undef, ysize...)
+    Asize = collect(size(A))
+    arrsize = copy(Asize)
+    arrsize[dims] = nbase
 
-        @nloops $N i y (
-            d -> d == dims ? (j_d = (:); if i_d > 1 break end) : j_d = i_d
-        ) begin
-            _A = @nref $N A j
-            _φ = @nref $N φ j
-            _y = reconstruct(_A, _φ, nbase)
-            setindex!(y, _y, (@ntuple $N j)...)
-        end
+    nA = Asize[dims]
+    pdims = (dims, setdiff(1:ndims(A), dims)...)
+    arr = permutedims(Array{T}(undef, arrsize...), pdims)
+    Ap = permutedims(A, pdims)
+    φp = permutedims(φ, pdims)
+    arrv = vec(arr)
+    Av = vec(Ap)
+    φv = vec(φp)
 
-        y
+    for i = 1:prod(size(Ap)[2:end])
+        yid = (i-1)*nbase+1:i*nbase
+        Aid = (i-1)*nA+1:i*nA
+        arrv[yid] = reconstruct(Av[Aid], φv[Aid], nbase)
     end
+
+    permutedims(arr, invperm(pdims))
 end
 
 
