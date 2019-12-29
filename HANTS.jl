@@ -9,12 +9,12 @@ Wout Verhoef
 NLR, Remote Sensing Dept.
 June 1998
 
-Converted to MATLAB:
+Convert to MATLAB:
 Mohammad Abouali (2011) (BSD 2-Clause)
 
 https://mabouali.wordpress.com/projects/harmonic-analysis-of-time-series-hants/
 
-Converted to Julia:
+Convert to Julia:
 Shen Ruoque (2019) (MIT License)
 
 https://github.com/shenrq/HANTS.jl
