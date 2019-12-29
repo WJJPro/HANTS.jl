@@ -1,5 +1,6 @@
 #!/usr/bin/env julia
 # -*- coding: utf-8 -*-
+cd(dirname(@__FILE__))
 include("../HANTS.jl")
 using .HANTS, Plots
 

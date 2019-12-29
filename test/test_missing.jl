@@ -4,6 +4,7 @@
 A missing data set to NaN.
 Missing data can also set to a value below the low value or above the high value.
 =#
+cd(dirname(@__FILE__))
 include("../HANTS.jl")
 using .HANTS, Plots
 

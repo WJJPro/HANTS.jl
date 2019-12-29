@@ -26,18 +26,18 @@ Change call and input arguments to accommodate a base period length (nb).
 All frequencies from 1 (base period) until nf are included.
 
 Converted from MATLAB to Julia:
-Ruoque Shen (2019) (MIT License)
+Shen Ruoque (2019) (MIT License)
 
 """
 module HANTS
-using LinearAlgebra
+using LinearAlgebra, Base.Cartesian
 
 export hants, reconstruct
 
 """
     hants(y, fet, dod, δ; nb, nf, validrange, ts, outlier)
 
-# HANTS processing
+Apply the HANTS process on the series `y`.
 
 ## Arguments:
 
@@ -47,7 +47,7 @@ export hants, reconstruct
           minimum required for curve fitting, plus dod). This is a safety measure
 - `δ`   : small positive number (e.g. 0.1) to suppress high amplitudes
 - `nb`  : length of the base period, measured in virtual samples
-         (days, dekads, months, etc.)
+          (days, dekads, months, etc.)
 - `nf`  : number of frequencies to be considered above the zero frequency
 - `validrange` : tuple of valid range minimum and maximum
                  (values outside the valid range are rejeced right away)
@@ -59,12 +59,10 @@ export hants, reconstruct
 
 ## Outputs:
 
-- `amp`   : returned array of amplitudes, first element is the average of the curve
-- `φ`     : returned array of phases, first element is zero
-- `yr`    : array holding reconstructed time series
+- `amp` : returned array of amplitudes, first element is the average of the curve
+- `φ`   : returned array of phases, first element is zero
+- `yr`  : array holding reconstructed time series
 """
-function hants end
-
 function hants(
     y::AbstractVector{T}, fet, dod, δ;
     nb=length(y), nf=3, validrange=extrema(y[.!isnan.(y)]),
@@ -73,9 +71,9 @@ function hants(
 
     ni = length(y)
     nr = min(2nf+1, ni)
-    mat = zeros(T, nr, ni)
-    amp = zeros(T, nf+1)
-    φ = zeros(T, nf+1)
+    mat = Array{T, 2}(undef, nr, ni)
+    amp = Vector{T}(undef, nf+1)
+    φ = Vector{T}(undef, nf+1)
     local zr, yr
 
     soutlier = outlier in ["Hi", "High"] ? -1 : outlier in ["Lo", "Low"] ? 1 : 0
@@ -147,34 +145,72 @@ function hants(
 end
 
 hants(
-    y::AbstractVector{<:Integer}, fet, dod, δ;
-    nb=length(y), nf=3, validrange=extrema(y[.!isnan.(y)]),
-    ts=1:length(y), outlier=nothing
+    y::AbstractVector{<:Integer}, fet, dod, δ; nb, nf, validrange, ts, outlier
 ) = hants(
     convert(Vector{Float64}, y), fet, dod, δ;
     nb=nb, nf=nf, validrange=validrange,
     ts=ts, outlier=outlier
 )
 
+
+"""
+    hants(A, fet, dod, δ; dims::Integer, nb, nf, validrange, ts, outlier)
+
+Apply the HANTS process on the multidimensional array `A`
+along the given dimension `dims`.
+"""
+@generated function hants(
+    A::AbstractArray{T,N}, fet, dod, δ;
+    dims::Integer, nb=size(A)[dims], nf=3, validrange=extrema(A[.!isnan.(A)]),
+    ts=1:size(A)[dims], outlier=nothing
+) where{T, N}
+    quote
+        if dims > N error("dims must less than N") end
+
+        Asize = size(A)
+        ampsize = copy(collect(Asize))
+        ampsize[dims] = nf + 1
+        Ar = Array{Float64, N}(undef, Asize...)
+        amp = Array{Float64, N}(undef, ampsize...)
+        φ = Array{Float64, N}(undef, ampsize...)
+
+        @nloops $N i A (
+            d -> d == dims ? (j_d = (:); if i_d > 1 break end) : j_d = i_d
+        ) begin
+            y_ = @nref $N A j
+            _amp, _φ, _yr = hants(
+                y_, fet, dod, δ; nb=nb, nf=nf,
+                validrange=validrange, ts=ts, outlier=outlier
+            )
+            setindex!(amp, _amp, (@ntuple $N j)...)
+            setindex!(φ, _φ, (@ntuple $N j)...)
+            setindex!(Ar, _yr, (@ntuple $N j)...)
+        end
+
+        amp, φ, Ar
+    end
+end
+
+
 """
     reconstruct(amp, φ, nb)
 
-Comput reconstructed time series.
+Comput reconstructed series.
 
 ## Arguments:
 
 - `amp` : array of amplitudes, first element is the average of the curve
 - `φ`   : array of phases, first element is zero
 - `nb`  : length of the base period, measured in virtual samples
-         (days, dekads, months, etc.)
+          (days, dekads, months, etc.)
 
 ## Outputs:
 
 - `y`   : reconstructed array of sample values
 """
-function reconstruct end
-
-function reconstruct(amp::AbstractVector{T}, φ, nb) where {T<:AbstractFloat}
+function reconstruct(
+    amp::AbstractVector{T}, φ::AbstractVector{T}, nb::Integer
+) where {T<:AbstractFloat}
     nf = length(amp)
     y = zeros(T, nb)
     a_coef = @. amp * cosd(φ)
@@ -186,8 +222,34 @@ function reconstruct(amp::AbstractVector{T}, φ, nb) where {T<:AbstractFloat}
     y
 end
 
-reconstruct(amp::AbstractVector{<:Integer}, φ, nb) = reconstruct(
-    convert(Vector{Float64}, amp), φ, nb
-)
+
+"""
+    reconstruct(amp, φ, nb; dims::Integer)
+
+Comput reconstructed multidimensional array.
+"""
+@generated function reconstruct(
+    amp::AbstractArray{T,N}, φ::AbstractArray{T,N}, nb::Integer; dims::Integer
+) where{T<:AbstractFloat, N}
+    quote
+        if dims > N error("dims must less than N") end
+
+        ysize = collect(size(amp))
+        ysize[dims] = nb
+        y = Array{T}(undef, ysize...)
+
+        @nloops $N i y (
+            d -> d == dims ? (j_d = (:); if i_d > 1 break end) : j_d = i_d
+        ) begin
+            _amp = @nref $N amp j
+            _φ = @nref $N φ j
+            _y = reconstruct(_amp, _φ, nb)
+            setindex!(y, _y, (@ntuple $N j)...)
+        end
+
+        y
+    end
+end
+
 
 end # module HANTS

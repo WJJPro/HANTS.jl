@@ -1,9 +1,9 @@
 #!/usr/bin/env julia
 # -*- coding: utf-8 -*-
 #=
-A missing data set to NaN.
-Missing data can also set to a value below the low value or above the high value.
+Apply HANTS process on an integer array
 =#
+cd(dirname(@__FILE__))
 include("../HANTS.jl")
 using .HANTS, Plots
 
