@@ -63,7 +63,7 @@ Apply the HANTS process on the series `y`.
 """
 function hants(
     y::AbstractVector{T}, fet, dod, δ;
-    nbase=length(y), nfreq=3, validrange=extrema(y[.!isnan.(y)]),
+    nbase=length(y), nfreq=3, validrange=extrema(y[.!(isnan.(y) .| isinf.(y))]),
     tseries=1:length(y), outlier=nothing
 ) where {T<:AbstractFloat}
 
@@ -76,7 +76,7 @@ function hants(
 
     soutlier = outlier in [:Hi, :High] ? -1 : outlier in [:Lo, :Low] ? 1 : 0
 
-    low, high = validrange
+    low, high = Float64.(validrange)
 
     noutmax = ny - nr - dod
     matirx[1, :] .= 1
@@ -90,7 +90,7 @@ function hants(
         matirx[2i+1, j] = sn[index]
     end
 
-    y_in = replace(y, NaN=>low-1)
+    y_in = replace(x -> isnan(x) | isinf(x) ? low-eps(low) : x, y)
     p = ones(ny)
     p[(y_in .< low) .| (y_in .> high)] .= 0
     nout = sum(p .== 0)
@@ -158,7 +158,8 @@ along the given dimension `dims`.
 """
 function hants(
     arr::AbstractArray{T,N}, fet, dod, δ;
-    dims::Integer, nbase=size(arr)[dims], nfreq=3, validrange=extrema(arr[.!isnan.(arr)]),
+    dims::Integer, nbase=size(arr)[dims], nfreq=3,
+    validrange=extrema(arr[.!(isnan.(arr) .| isinf.(arr))]),
     tseries=1:size(arr)[dims], outlier=nothing
 ) where{T, N}
     if dims > N error("dims must less than N") end
