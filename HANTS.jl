@@ -179,7 +179,7 @@ function hants(
     Av = reshape(PermutedDimsArray(A, pdims), nfreq+1, isize)
     φv = reshape(PermutedDimsArray(φ, pdims), nfreq+1, isize)
 
-    for i = 1:isize
+    @inbounds @simd for i = 1:isize
         Av[:, i], φv[:, i], arr_recv[:, i] = hants(
             arrv[:, i], fet, dod, δ; nbase=nbase, nfreq=nfreq,
             validrange=validrange, tseries=tseries, outlier=outlier
@@ -213,7 +213,7 @@ function reconstruct(
     y = zeros(T, nbase)
     a_coef = @. A * cosd(φ)
     b_coef = @. A * sind(φ)
-    for i = 1:nfreq
+    @inbounds for i = 1:nfreq
         tt = @. (i - 1) * 2 * (0:nbase-1) / nbase
         @. y += a_coef[i] * cospi(tt) + b_coef[i] * sinpi(tt)
     end
@@ -243,7 +243,7 @@ function reconstruct(
     Av = reshape(permutedims(A, pdims), nA, isize)
     φv = reshape(permutedims(φ, pdims), nA, isize)
 
-    for i = 1:isize
+    @inbounds @simd for i = 1:isize
         arrv[:, i] = reconstruct(Av[:, i], φv[:, i], nbase)
     end
 
