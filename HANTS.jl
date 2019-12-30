@@ -69,7 +69,7 @@ function hants(
 
     ny = length(y)
     nr = min(2nfreq+1, ny)
-    matirx = Matrix{T}(undef, nr, ny)
+    matirx = Matrix{T}(undef, 2nfreq+1, ny)
     A = Vector{T}(undef, nfreq+1)
     φ = Vector{T}(undef, nfreq+1)
     local zr, yrec
@@ -83,7 +83,7 @@ function hants(
 
     ang = 2 * (0:nbase-1) / nbase
     cs = cospi.(ang); sn = sinpi.(ang)
-    for i = 1:nfreq
+    @inbounds for i = 1:nfreq
         j = 1:ny
         index = @. 1 + mod(i * (tseries[j] - 1), nbase)
         matirx[2i  , j] = cs[index]
@@ -95,7 +95,10 @@ function hants(
     p[(y_in .< low) .| (y_in .> high)] .= 0
     nout = sum(p .== 0)
 
-    if nout > noutmax return end
+    if nout > noutmax
+        error("nout > noutmax, get nout $nout and noutmax $noutmax")
+        return
+    end
 
     ready = false; nloop = 0; nloopmax = ny
 
@@ -162,7 +165,7 @@ function hants(
     validrange=extrema(arr[.!(isnan.(arr) .| isinf.(arr))]),
     tseries=1:size(arr)[dims], outlier=nothing
 ) where{T, N}
-    if dims > N error("dims must less than N") end
+    if dims > N error("dims must less than N, get dims $dims and N $N.") end
 
     arrsize = size(arr)
     Asize = copy(collect(arrsize))
