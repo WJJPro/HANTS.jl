@@ -83,7 +83,7 @@ function hants(
 
     ang = 2 * (0:nbase-1) / nbase
     cs = cospi.(ang); sn = sinpi.(ang)
-    @inbounds for i = 1:nfreq
+    @inbounds @simd for i = 1:nfreq
         j = 1:ny
         index = @. 1 + mod(i * (tseries[j] - 1), nbase)
         matirx[2i  , j] = cs[index]
