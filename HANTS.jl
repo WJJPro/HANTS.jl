@@ -173,16 +173,15 @@ function hants(
     arr_rec = Array{Float64, N}(undef, arrsize...)
     A = Array{Float64, N}(undef, Asize...)
     φ = Array{Float64, N}(undef, Asize...)
-    arrv = permutedims(arr, pdims) |> vec
-    arr_recv = PermutedDimsArray(arr_rec, pdims) |> vec
-    Av = PermutedDimsArray(A, pdims) |> vec
-    φv = PermutedDimsArray(φ, pdims) |> vec
+    isize = prod(arrsize)÷ny
+    arrv = reshape(permutedims(arr, pdims), ny, isize)
+    arr_recv = reshape(PermutedDimsArray(arr_rec, pdims), ny, isize)
+    Av = reshape(PermutedDimsArray(A, pdims), nfreq+1, isize)
+    φv = reshape(PermutedDimsArray(φ, pdims), nfreq+1, isize)
 
-    for i = 1:prod(arrsize)÷ny
-        yid = (i-1)*ny+1:i*ny
-        Aid = (i-1)*(nfreq+1)+1:i*(nfreq+1)
-        Av[Aid], φv[Aid], arr_recv[yid] = hants(
-            arrv[yid], fet, dod, δ; nbase=nbase, nfreq=nfreq,
+    for i = 1:isize
+        Av[:, i], φv[:, i], arr_recv[:, i] = hants(
+            arrv[:, i], fet, dod, δ; nbase=nbase, nfreq=nfreq,
             validrange=validrange, tseries=tseries, outlier=outlier
         )
     end
@@ -239,14 +238,13 @@ function reconstruct(
     nA = Asize[dims]
     pdims = (dims, setdiff(1:ndims(A), dims)...)
     arr = Array{T}(undef, arrsize...)
-    arrv = PermutedDimsArray(arr, pdims) |> vec
-    Av = permutedims(A, pdims) |> vec
-    φv = permutedims(φ, pdims) |> vec
+    isize = prod(Asize)÷nA
+    arrv = reshape(PermutedDimsArray(arr, pdims), nbase, isize)
+    Av = reshape(permutedims(A, pdims), nA, isize)
+    φv = reshape(permutedims(φ, pdims), nA, isize)
 
-    for i = 1:prod(Asize)÷nA
-        yid = (i-1)*nbase+1:i*nbase
-        Aid = (i-1)*nA+1:i*nA
-        arrv[yid] = reconstruct(Av[Aid], φv[Aid], nbase)
+    for i = 1:isize
+        arrv[:, i] = reconstruct(Av[:, i], φv[:, i], nbase)
     end
 
     arr
