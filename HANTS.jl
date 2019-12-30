@@ -91,9 +91,8 @@ function hants(
     end
 
     y_in = replace(x -> isnan(x) | isinf(x) ? low-eps(low) : x, y)
-    p = ones(ny)
-    p[(y_in .< low) .| (y_in .> high)] .= 0
-    nout = sum(p .== 0)
+    p = low .< y_in .< high
+    nout = ny - sum(p)
 
     if nout > noutmax
         error("nout > noutmax, get nout $nout and noutmax $noutmax")
@@ -107,7 +106,7 @@ function hants(
         za = matirx * (p .* y_in)
 
         arr = matirx * diagm(0=>p) * matirx'
-        arr += diagm(0=>ones(nr)) * δ
+        arr += δ * I
         arr[1, 1] -= δ
         zr = arr \ za
 
@@ -117,7 +116,7 @@ function hants(
 
         rankvec = sortperm(err)
 
-        maxerr = diffvec[Int(rankvec[ny])]
+        maxerr = diffvec[rankvec[ny]]
         ready = maxerr ≤ fet || nout == noutmax
 
         if !ready
