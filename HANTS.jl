@@ -30,7 +30,7 @@ using LinearAlgebra
 
 export hants, reconstruct
 
-isinvalid(x) = ismissing(x) || isnothing(x) || isnan(x) || isinf(x)
+isinvalid(x) = ismissing(x) || isnothing(x) || isinf(x)
 
 """
     hants(y, fet, dod, δ; nbase, nfreq, validrange, tseries, outlier)
@@ -64,8 +64,8 @@ Apply the HANTS process on the series `y`.
 - `yrec` : array holding reconstructed time series
 """
 function hants(
-    y::AbstractVector{Union{Missing, Nothing, T}}, fet, dod, δ;
-    nbase=length(y), nfreq=3, validrange=extrema(y[.!isinvalid.(y)]),
+    y::AbstractVector{T}, fet, dod, δ;
+    nbase=length(y), nfreq=3, validrange=extrema(y[.!ianan.(y)]),
     tseries=1:length(y), outlier=nothing
 ) where {T<:AbstractFloat}
 
@@ -146,12 +146,27 @@ function hants(
 end
 
 hants(
-    y::AbstractVector{<:Union{Missing, Nothing, Integer}},
-    fet, dod, δ; nbase, nfreq, validrange, tseries, outlier
+    y::AbstractVector{Union{Missing, Nothing, T}}, args...; kargs...
+) where {T<:AbstractFloat} = hants(
+    convert(Vector{T}, replace(x -> isinvalid(x) ? NaN : x, y)), args...; kargs...
+)
+
+hants(
+    y::AbstractVector{Union{Missing, T}}, args...; kargs...
+) where {T<:AbstractFloat} = hants(
+    convert(Vector{T}, replace(x -> isinvalid(x) ? NaN : x, y)), args...; kargs...
+)
+
+hants(
+    y::AbstractVector{Union{Nothing, T}}, args...; kargs...
+) where {T<:AbstractFloat} = hants(
+    convert(Vector{T}, replace(x -> isinvalid(x) ? NaN : x, y)), args...; kargs...
+)
+
+hants(
+    y::AbstractVector{<:Union{Missing, Nothing, Integer}}, args...; kargs...
 ) = hants(
-    convert(Vector{Union{Missing, Nothing, Float64}}, y), fet, dod, δ;
-    nbase=nbase, nfreq=nfreq, validrange=validrange,
-    tseries=tseries, outlier=outlier
+    convert(Vector{Union{Missing, Nothing, Float64}}, y), args...; kargs...
 )
 
 
@@ -162,7 +177,7 @@ Apply the HANTS process on the multidimensional array `arr`
 along the given dimension `dims`.
 """
 function hants(
-    arr::AbstractArray{Union{Missing, Nothing, T},N}, fet, dod, δ;
+    arr::AbstractArray{T,N}, fet, dod, δ;
     dims::Integer, nbase=size(arr)[dims], nfreq=3,
     validrange=extrema(arr[.!isinvalid.(arr)]),
     tseries=1:size(arr)[dims], outlier=nothing
@@ -195,12 +210,27 @@ function hants(
 end
 
 hants(
-    arr::AbstractArray{Union{Missing, Nothing, Integer},N}, fet, dod, δ;
-    dims, nbase, nfreq, validrange, tseries, outlier
+    arr::AbstractArray{Union{Missing, Nothing, T},N}, args...; kargs...
+) where {T<:AbstractFloat, N} = hants(
+    convert(Array{T,N}, replace(x -> isinvalid(x) ? NaN : x, arr)), args...; kargs...
+)
+
+hants(
+    arr::AbstractArray{Union{Missing, T},N}, args...; kargs...
+) where {T<:AbstractFloat, N} = hants(
+    convert(Array{T,N}, replace(x -> isinvalid(x) ? NaN : x, arr)), args...; kargs...
+)
+
+hants(
+    arr::AbstractArray{Union{Nothing, T},N}, args...; kargs...
+) where {T<:AbstractFloat, N} = hants(
+    convert(Array{T,N}, replace(x -> isinvalid(x) ? NaN : x, arr)), args...; kargs...
+)
+
+hants(
+    arr::AbstractArray{Union{Missing, Nothing, Integer},N}, args...; kargs...
 ) where {N} = hants(
-    convert(Array{Union{Missing, Nothing, Float64},N}, arr), fet, dod, δ;
-    dims=dims, nbase=nbase, nfreq=nfreq, validrange=validrange,
-    tseries=tseries, outlier=outlier
+    convert(Array{Union{Missing, Nothing, Float64},N}, arr), args...; kargs...
 )
 
 
