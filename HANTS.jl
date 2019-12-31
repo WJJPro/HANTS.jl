@@ -45,7 +45,7 @@ Apply the HANTS process on the series `y`.
           minimum required for curve fitting, plus dod). This is a safety measure
 - `δ`   : small positive number (e.g. 0.1) to suppress high amplitudes
 - `nbase` : length of the base period, measured in virtual samples
-            (days, dekads, months, etc.)
+            (days, decades, months, etc.)
 - `nfreq` : number of frequencies to be considered above the zero frequency.
             Set to 3 by default
 - `validrange` : tuple of valid range minimum and maximum
@@ -214,7 +214,7 @@ Comput reconstructed series.
 - `A` : array of amplitudes, first element is the average of the curve
 - `φ` : array of phases, first element is zero
 - `nbase` : length of the base period, measured in virtual samples
-            (days, dekads, months, etc.)
+            (days, decades, months, etc.)
 
 ## Outputs:
 
