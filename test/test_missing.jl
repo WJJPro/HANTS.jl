@@ -9,7 +9,7 @@ include("../HANTS.jl")
 using .HANTS, Plots
 
 y = [
-    0.055952, 0.037081, 0.062657, 0.120110, 0.178219, 0.244443, 0.213190, 0.494648,
+    nothing , 0.037081, 0.062657, 0.120110, 0.178219, missing , 0.213190, 0.494648,
     0.328767, 0.561776, 0.380300, 0.641233, NaN     , 0.827757, 0.654052, 0.816695,
     0.611424, 0.661557, 0.398067, 0.339881, 0.113957, Inf     , 0.058600
 ]
@@ -36,6 +36,8 @@ A_Lo, φ_Lo, yrec_Lo = hants(
     y, fet, dod, δ; nbase=nbase, nfreq=nfreq, validrange=validrange, tseries=tseries, outlier=:Lo
 )
 y_reconstruct_Lo = reconstruct(A_Lo, φ_Lo, nbase)
+
+replace!(x -> ismissing(x) || isnothing(x) ? NaN : x, y)
 
 fig1 = plot(tseries, y, lc=:black, label="Original Data", shape=:circle, mc=:black)
 plot!(tseries, yrec, lc=:blue, label="HANTS - None", shape=:circle, mc=:blue)

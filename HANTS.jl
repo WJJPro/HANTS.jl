@@ -30,6 +30,8 @@ using LinearAlgebra
 
 export hants, reconstruct
 
+isinvalid(x) = ismissing(x) || isnothing(x) || isnan(x) || isinf(x)
+
 """
     hants(y, fet, dod, δ; nbase, nfreq, validrange, tseries, outlier)
 
@@ -62,8 +64,8 @@ Apply the HANTS process on the series `y`.
 - `yrec` : array holding reconstructed time series
 """
 function hants(
-    y::AbstractVector{T}, fet, dod, δ;
-    nbase=length(y), nfreq=3, validrange=extrema(y[.!(isnan.(y) .| isinf.(y))]),
+    y::AbstractVector{Union{Missing, Nothing, T}}, fet, dod, δ;
+    nbase=length(y), nfreq=3, validrange=extrema(y[.!isinvalid.(y)]),
     tseries=1:length(y), outlier=nothing
 ) where {T<:AbstractFloat}
 
@@ -90,7 +92,7 @@ function hants(
         matirx[2i+1, j] = sn[index]
     end
 
-    y_in = replace(x -> isnan(x) | isinf(x) ? low-eps(low) : x, y)
+    y_in = replace(x -> isinvalid(x) ? low-eps(low) : x, y)
     p = low .< y_in .< high
     nout = ny - sum(p)
 
@@ -144,9 +146,10 @@ function hants(
 end
 
 hants(
-    y::AbstractVector{<:Integer}, fet, dod, δ; nbase, nfreq, validrange, tseries, outlier
+    y::AbstractVector{<:Union{Missing, Nothing, Integer}},
+    fet, dod, δ; nbase, nfreq, validrange, tseries, outlier
 ) = hants(
-    convert(Vector{Float64}, y), fet, dod, δ;
+    convert(Vector{Union{Missing, Nothing, Float64}}, y), fet, dod, δ;
     nbase=nbase, nfreq=nfreq, validrange=validrange,
     tseries=tseries, outlier=outlier
 )
@@ -161,7 +164,7 @@ along the given dimension `dims`.
 function hants(
     arr::AbstractArray{T,N}, fet, dod, δ;
     dims::Integer, nbase=size(arr)[dims], nfreq=3,
-    validrange=extrema(arr[.!(isnan.(arr) .| isinf.(arr))]),
+    validrange=extrema(arr[.!isinvalid.(arr)]),
     tseries=1:size(arr)[dims], outlier=nothing
 ) where{T, N}
     if dims > N error("dims must less than N, get dims $dims and N $N.") end
