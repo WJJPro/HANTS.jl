@@ -162,11 +162,11 @@ Apply the HANTS process on the multidimensional array `arr`
 along the given dimension `dims`.
 """
 function hants(
-    arr::AbstractArray{T,N}, fet, dod, δ;
+    arr::AbstractArray{Union{Missing, Nothing, T},N}, fet, dod, δ;
     dims::Integer, nbase=size(arr)[dims], nfreq=3,
     validrange=extrema(arr[.!isinvalid.(arr)]),
     tseries=1:size(arr)[dims], outlier=nothing
-) where{T, N}
+) where{T<:AbstractFloat, N}
     if dims > N error("dims must less than N, get dims $dims and N $N.") end
 
     arrsize = size(arr)
@@ -175,9 +175,9 @@ function hants(
 
     ny = arrsize[dims]
     pdims = (dims, setdiff(1:ndims(arr), dims)...)
-    arr_rec = Array{Float64, N}(undef, arrsize...)
-    A = Array{Float64, N}(undef, Asize...)
-    φ = Array{Float64, N}(undef, Asize...)
+    arr_rec = Array{T, N}(undef, arrsize...)
+    A = Array{T, N}(undef, Asize...)
+    φ = Array{T, N}(undef, Asize...)
     isize = prod(arrsize)÷ny
     arrv = reshape(permutedims(arr, pdims), ny, isize)
     arr_recv = reshape(PermutedDimsArray(arr_rec, pdims), ny, isize)
@@ -193,6 +193,15 @@ function hants(
 
     A, φ, arr_rec
 end
+
+hants(
+    arr::AbstractArray{Union{Missing, Nothing, Integer},N}, fet, dod, δ;
+    dims, nbase, nfreq, validrange, tseries, outlier
+) where {N} = hants(
+    convert(Array{Union{Missing, Nothing, Float64},N}, arr), fet, dod, δ;
+    dims=dims, nbase=nbase, nfreq=nfreq, validrange=validrange,
+    tseries=tseries, outlier=outlier
+)
 
 
 """
