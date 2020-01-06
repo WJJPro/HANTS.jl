@@ -44,7 +44,7 @@ Apply the HANTS process on the series `y`.
 - `fet` : fit error tolerance (points deviating more than fet from curve fit are rejected)
 - `dod` : degree of overdeterminedness (iteration stops if number of points reaches the
           minimum required for curve fitting, plus dod). This is a safety measure
-- `δ`   : small positive number (e.g. 0.1) to suppress high amplitudes
+- `δ`   : (\\delta<tab>) small positive number (e.g. 0.1) to suppress high amplitudes
 - `nbase` : length of the base period, measured in virtual samples
             (days, decades, months, etc.)
 - `nfreq` : number of frequencies to be considered above the zero frequency.
@@ -61,7 +61,7 @@ Apply the HANTS process on the series `y`.
 ## Outputs:
 
 - `A` : returned array of amplitudes, first element is the average of the curve
-- `φ` : returned array of phases, first element is zero
+- `φ` : (\\varphi<tab>) returned array of phases, first element is zero
 - `yrec` : array holding reconstructed time series
 """
 function hants(
@@ -243,7 +243,7 @@ Comput reconstructed series.
 ## Arguments:
 
 - `A` : array of amplitudes, first element is the average of the curve
-- `φ` : array of phases, first element is zero
+- `φ` : (\\varphi<tab>) array of phases, first element is zero
 - `nbase` : length of the base period, measured in virtual samples
             (days, decades, months, etc.)
 
