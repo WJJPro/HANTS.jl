@@ -124,7 +124,7 @@ function hants(
 
         if !ready
             i = ny; j = rankvec[i]
-            while p[j] * diffvec[j] > 0.5maxerr && nout < noutmax
+            while p[j] * diffvec[j] > maxerr / 2 && nout < noutmax
                 p[j] = 0; nout += 1; i -= 1; j = rank(i)
             end
         end
