@@ -31,7 +31,6 @@ using LinearAlgebra
 export hants, reconstruct
 
 isinvalid(x) = ismissing(x) || isnothing(x)
-isinvalidfloat(x) = isnan(x) || isinf(x)
 
 """
     hants(y, fet, dod, δ; nbase, nfreq, validrange, tseries, outlier)
@@ -93,8 +92,7 @@ function hants(
         matirx[2i+1, j] = sn[index]
     end
 
-    y_in = replace(x -> isinvalidfloat(x) ? low-eps(low) : x, y)
-    p = low .< y_in .< high
+    p = low .< y .< high
     nout = ny - sum(p)
 
     if nout > noutmax
@@ -106,7 +104,7 @@ function hants(
 
     while (!ready) && (nloop < nloopmax)
         nloop += 1
-        za = matirx * (p .* y_in)
+        za = matirx * (p .* y)
 
         arr = matirx * diagm(0=>p) * matirx'
         arr += δ * I
@@ -114,7 +112,7 @@ function hants(
         zr = arr \ za
 
         yrec = matirx' * zr
-        diffvec = soutlier * (yrec - y_in)
+        diffvec = soutlier * (yrec - y)
         err = p .* diffvec
 
         rankvec = sortperm(err)
