@@ -42,20 +42,20 @@ Apply the HANTS process on the series `y`.
 - `y`   : array of input sample values (e.g. NDVI values)
 - `fet` : fit error tolerance (points deviating more than fet from curve fit are rejected)
 - `dod` : degree of overdeterminedness (iteration stops if number of points reaches the
-          minimum required for curve fitting, plus dod). This is a safety measure
+minimum required for curve fitting, plus dod). This is a safety measure
 - `δ`   : (\\delta<tab>) small positive number (e.g. 0.1) to suppress high amplitudes
 - `nbase` : length of the base period, measured in virtual samples
-            (days, decades, months, etc.)
+(days, decades, months, etc.)
 - `nfreq` : number of frequencies to be considered above the zero frequency.
-            Set to 3 by default
+Set to 3 by default
 - `validrange` : tuple of valid range minimum and maximum
-                 (values outside the valid range are rejeced right away)
-                 Set to the extremas by default.
+(values outside the valid range are rejeced right away)
+Set to the extremas by default.
 - `tseries` : array same size as `y` of time sample indicators (indicates virtual sample
-              number relative to the base period); numbers in array `tseries` maybe greater
-              than nbase. Set to 1:length(tseries) by default
+number relative to the base period); numbers in array `tseries` maybe greater
+than nbase. Set to `1:length(tseries)` by default
 - `outlier` : a symbol `:Hi` or `:Lo` indicating rejection of high or low outliers.
-              Set to `nothing` by default
+Set to `nothing` by default
 
 ## Outputs:
 
@@ -170,7 +170,7 @@ hants(
 
 
 """
-    hants(arr, fet, dod, δ; dims::Integer, nbase, nfreq, validrange, tseries, outlier)
+    hants(arr, fet, dod, δ; dims, nbase, nfreq, validrange, tseries, outlier)
 
 Apply the HANTS process on the multidimensional array `arr`
 along the given dimension `dims`.
@@ -243,7 +243,7 @@ Comput reconstructed series.
 - `A` : array of amplitudes, first element is the average of the curve
 - `φ` : (\\varphi<tab>) array of phases, first element is zero
 - `nbase` : length of the base period, measured in virtual samples
-            (days, decades, months, etc.)
+(days, decades, months, etc.)
 
 ## Outputs:
 
